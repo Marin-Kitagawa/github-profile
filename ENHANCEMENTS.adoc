@@ -1,0 +1,445 @@
+= GitHub Profile — Enhancement Guide
+:toc: left
+:toc-title: Contents
+:toclevels: 3
+:icons: font
+:source-highlighter: highlight.js
+:numbered:
+:sectnums:
+
+This document catalogs every enhancement added to this fork of github-profile, plus a curated reference of complementary external tools for building a stunning GitHub profile README.
+
+== Cards Added to This Project
+
+All cards follow the same URL pattern:
+
+[source]
+----
+https://<your-deployment>/api/<card-name>?param=value&...
+----
+
+Common parameters shared by every card:
+
+[cols="1,1,3", options="header"]
+|===
+| Parameter | Default | Description
+| `theme` | `default` | Theme name (60+ built-in themes)
+| `dark_theme` | — | Auto-switch to this theme in OS dark mode (`prefers-color-scheme`)
+| `title_color` | theme | Card title hex color (without `#`)
+| `text_color` | theme | Body text hex color
+| `icon_color` | theme | Icon / accent hex color
+| `bg_color` | theme | Background color or gradient (`angle,color1,color2,...`)
+| `border_color` | theme | Border hex color
+| `hide_border` | `false` | Remove card border
+| `hide_title` | `false` | Remove card title
+| `border_radius` | `4.5` | Corner radius in px
+| `disable_animations` | `false` | Turn off SVG animations
+| `custom_title` | — | Override the card title text
+| `cache_seconds` | varies | CDN cache TTL override
+|===
+
+=== GitHub Stats Card (`/api`)
+
+The core card. Shows commits, stars, PRs, issues, and a rank circle.
+
+[source,markdown]
+----
+![Stats](https://your-deployment/api?username=octocat&theme=github_dark&dark_theme=github_light&show_icons=true&rank_icon=github)
+----
+
+Additional parameters:
+
+[cols="1,1,3", options="header"]
+|===
+| Parameter | Default | Description
+| `show_icons` | `false` | Show stat icons
+| `hide_rank` | `false` | Hide the rank circle
+| `rank_icon` | `default` | `default`, `github`, or `percentile`
+| `show` | — | Extra stats: `reviews`, `prs_merged`, `prs_merged_percentage`, `discussions_started`, `discussions_answered`
+| `hide` | — | Hide specific stats: `stars`, `commits`, `prs`, `issues`, `contribs`
+| `include_all_commits` | `false` | Count commits across all years (uses REST API)
+| `dark_theme` | — | *New:* theme name to use when OS is in dark mode
+|===
+
+=== Streak Stats Card (`/api/streak`) _(New)_
+
+Three-panel card showing current streak, total contributions (last year), and longest streak.
+
+[source,markdown]
+----
+![Streak](https://your-deployment/api/streak?username=octocat&theme=tokyonight)
+----
+
+=== Contribution Heatmap Card (`/api/heatmap`) _(New)_
+
+Full 52-week contribution grid — the same calendar that appears on your GitHub profile page, embeddable anywhere.
+
+[source,markdown]
+----
+![Heatmap](https://your-deployment/api/heatmap?username=octocat&theme=github_dark)
+----
+
+NOTE: This card is 722 px wide. Set `card_width` only if you need to override layout.
+
+=== LeetCode Stats Card (`/api/leetcode`) _(New)_
+
+Animated progress bars for Easy / Medium / Hard problems solved, plus global ranking.
+
+[source,markdown]
+----
+![LeetCode](https://your-deployment/api/leetcode?username=your-leetcode-username&theme=dark)
+----
+
+No API key required. Uses LeetCode's public GraphQL endpoint.
+
+=== Stack Overflow Stats Card (`/api/stackoverflow`) _(New)_
+
+Reputation, gold/silver/bronze badges, answer and question counts.
+
+[source,markdown]
+----
+![SO](https://your-deployment/api/stackoverflow?user_id=1732273&theme=dark)
+----
+
+NOTE: Pass your **numeric** user ID (visible in your SO profile URL, e.g. `stackoverflow.com/users/1732273`).
+
+=== NPM Package Stats Card (`/api/npm`) _(New)_
+
+Total packages, monthly download count, and most popular package.
+
+[source,markdown]
+----
+![NPM](https://your-deployment/api/npm?username=sindresorhus&theme=dark)
+----
+
+=== PyPI Package Stats Card (`/api/pypi`) _(New)_
+
+Monthly downloads and top package across a list of PyPI packages you maintain.
+
+[source,markdown]
+----
+![PyPI](https://your-deployment/api/pypi?packages=requests,httpx,rich&theme=dark)
+----
+
+IMPORTANT: PyPI has no search-by-author API. Pass your package names explicitly as a comma-separated list.
+
+=== Last.fm Stats Card (`/api/lastfm`) _(New)_
+
+Total scrobbles, top artist (7-day), and currently playing (or most recent) track with a live pulsing indicator.
+
+[source,markdown]
+----
+![Last.fm](https://your-deployment/api/lastfm?username=your-lastfm-username&api_key=YOUR_API_KEY&theme=dark)
+----
+
+TIP: Get a free Last.fm API key at https://www.last.fm/api/account/create
+
+=== Top Languages Card (`/api/top-langs`)
+
+[source,markdown]
+----
+![Top Langs](https://your-deployment/api/top-langs?username=octocat&layout=compact&theme=github_dark)
+----
+
+Layouts: `normal`, `compact`, `donut`, `donut_vertical`, `pie`
+
+== New Themes
+
+Five themes added to the built-in set:
+
+[cols="1,2", options="header"]
+|===
+| Theme name | Description
+| `catppuccin_frappe` | Catppuccin Frappé — medium-dark purple/grey
+| `catppuccin_macchiato` | Catppuccin Macchiato — dark blue/grey
+| `everforest` | Warm green-tinted dark theme (popular Vim/Neovim theme)
+| `github_light` | GitHub's own light-mode UI palette
+| `tokyo_night_storm` | Cooler, stormier variant of tokyonight
+|===
+
+Combined with the pre-existing 60+ themes, the full list is visible at `themes/index.js`.
+
+=== Auto Dark Mode
+
+Any card can now automatically switch theme when the viewer's OS is in dark mode:
+
+[source,markdown]
+----
+![Stats](https://your-deployment/api?username=octocat&theme=github_light&dark_theme=github_dark)
+----
+
+This works because the generated SVG embeds a `@media (prefers-color-scheme: dark)` CSS block. GitHub renders profile images as `<img>` elements, which _do_ respect CSS media queries inside embedded SVGs in modern browsers.
+
+== External Tools & Integrations
+
+These are third-party projects that complement the cards above. None require you to self-host anything beyond what is already deployed.
+
+=== Visual Banners & Typography
+
+==== Capsule Render
+
+Animated header and footer banners with dozens of shapes and gradient presets.
+
+[source,markdown]
+----
+<img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=180&section=header&text=Your+Name&fontSize=42&fontColor=fff&animation=twinkling" />
+----
+
+Shapes: `waving`, `cylinder`, `rect`, `soft`, `egg`, `shark`, `slice`
+Animations: `twinkling`, `fadeIn`, `blinking`, `scaleIn`
+
+Source: https://github.com/kyechan99/capsule-render
+
+==== Readme Typing SVG
+
+An SVG that types out strings on a loop — perfect for a dynamic tagline.
+
+[source,markdown]
+----
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=22&pause=1000&color=6AD3F7&lines=Full-Stack+Dev;Open+Source+Enthusiast" />
+----
+
+Source: https://github.com/DenverCoder1/readme-typing-svg
+
+=== Badges
+
+==== Shields.io
+
+The definitive badge generator. Works for virtually any platform.
+
+[source,markdown]
+----
+<!-- Tech stack badge -->
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+
+<!-- Dynamic: npm downloads -->
+![npm](https://img.shields.io/npm/dm/your-package?style=for-the-badge)
+
+<!-- Dynamic: GitHub followers -->
+![Followers](https://img.shields.io/github/followers/username?style=for-the-badge)
+----
+
+Styles: `flat`, `flat-square`, `plastic`, `for-the-badge`, `social`
+
+Source: https://shields.io
+
+==== Skill Icons
+
+Beautiful technology logos in a single image row — far cleaner than individual badges for showing your stack.
+
+[source,markdown]
+----
+[![Skills](https://skillicons.dev/icons?i=ts,react,nodejs,rust,go,python,postgres,docker&theme=dark&perline=8)](https://skillicons.dev)
+----
+
+Full icon list: https://skillicons.dev
+
+==== Profile View Counter
+
+A self-updating view counter badge.
+
+[source,markdown]
+----
+![Profile Views](https://komarev.com/ghpvc/?username=YOUR_USERNAME&style=for-the-badge&color=blueviolet)
+----
+
+Source: https://github.com/antonkomarev/github-profile-views-counter
+
+=== Achievement Displays
+
+==== GitHub Profile Trophy
+
+Renders achievement trophies based on your GitHub stats (commits, stars, followers, etc.).
+
+[source,markdown]
+----
+[![Trophies](https://github-profile-trophy.vercel.app/?username=YOUR_USERNAME&theme=onestar&no-frame=true&no-bg=true&row=1&column=7)](https://github.com/ryo-ma/github-profile-trophy)
+----
+
+Themes include: `flat`, `onedark`, `gruvbox`, `dracula`, `nord`, `onestar`, `radical`
+
+Source: https://github.com/ryo-ma/github-profile-trophy
+
+=== Contribution Animations
+
+==== Contribution Snake
+
+A snake animation that eats your contribution squares. Runs via GitHub Actions and commits an SVG to your repo.
+
+Setup — add `.github/workflows/snake.yml` to your _profile_ repository:
+
+[source,yaml]
+----
+name: Generate Contribution Snake
+on:
+  schedule:
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Platane/snk@v3
+        with:
+          github_user_token: ${{ secrets.GITHUB_TOKEN }}
+          outputs: |
+            dist/snake.svg
+            dist/snake-dark.svg?palette=github-dark
+      - uses: crazy-max/ghaction-github-pages@v4
+        with:
+          target_branch: output
+          build_dir: dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+----
+
+Embed with automatic light/dark switching:
+
+[source,markdown]
+----
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/USERNAME/USERNAME/output/snake-dark.svg" />
+  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/USERNAME/USERNAME/output/snake.svg" />
+  <img src="https://raw.githubusercontent.com/USERNAME/USERNAME/output/snake.svg" />
+</picture>
+----
+
+Source: https://github.com/Platane/snk
+
+=== GitHub Actions — Auto-updating README Sections
+
+These actions commit updated content directly to your README on a schedule. Wrap target sections with HTML comment markers they look for.
+
+==== GitHub Activity Feed
+
+Appends your 10 most recent GitHub events (pushes, PRs, reviews, comments) to your README.
+
+[source,markdown]
+----
+<!--START_SECTION:activity-->
+<!--END_SECTION:activity-->
+----
+
+[source,yaml]
+----
+- uses: jamesgeorge007/github-activity-readme@master
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    MAX_LINES: 10
+----
+
+Source: https://github.com/jamesgeorge007/github-activity-readme
+
+==== WakaTime Coding Stats (Text)
+
+Embeds a formatted WakaTime breakdown (languages, editors, OS, time) directly into your README as text — complementary to the WakaTime SVG card.
+
+[source,markdown]
+----
+<!--START_SECTION:waka-->
+<!--END_SECTION:waka-->
+----
+
+[source,yaml]
+----
+- uses: anmol098/waka-readme-stats@master
+  with:
+    WAKATIME_API_KEY: ${{ secrets.WAKATIME_API_KEY }}
+    GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    SHOW_OS: "True"
+    SHOW_EDITORS: "True"
+    SHOW_LANGUAGE: "True"
+----
+
+Source: https://github.com/anmol098/waka-readme-stats
+
+=== Comprehensive Metrics (lowlighter/metrics)
+
+The most powerful single tool in this space. Generates a complete metrics SVG covering 30+ data sources via a single GitHub Action, including:
+
+* GitHub stats, languages, streak
+* Pagespeed / website performance
+* Habits (coding time, peak hours, commit patterns)
+* Achievements and milestones
+* Followers network graph
+* Topics and interests
+* RSS / blog posts
+* Music (Spotify, Last.fm)
+* LeetCode, Codeforces, Chess.com, and more
+
+[source,yaml]
+----
+- uses: lowlighter/metrics@latest
+  with:
+    token: ${{ secrets.METRICS_TOKEN }}
+    user: YOUR_USERNAME
+    template: classic
+    base: header, activity, community, repositories, metadata
+    plugin_habits: yes
+    plugin_achievements: yes
+    plugin_languages: yes
+    plugin_wakatime: yes
+    plugin_wakatime_token: ${{ secrets.WAKATIME_API_KEY }}
+----
+
+NOTE: This project and `lowlighter/metrics` are complementary. This project generates on-demand URL-embeddable SVGs; `metrics` generates richer static outputs via Actions.
+
+Source: https://github.com/lowlighter/metrics
+
+== Profile README Template
+
+A ready-to-use template combining all of the above is at `examples/profile-readme.md`.
+
+Key sections:
+1. **Waving banner** (capsule-render)
+2. **Typing animation** (readme-typing-svg)
+3. **Social / view-count badges** (shields.io, komarev)
+4. **Tech stack icons** (skillicons.dev)
+5. **Stats + streak + heatmap cards** (this project)
+6. **Trophy case** (github-profile-trophy)
+7. **LeetCode + Stack Overflow cards** (this project)
+8. **NPM / PyPI package cards** (this project)
+9. **Last.fm now-playing card** (this project)
+10. **WakaTime coding activity** (this project)
+11. **Auto-updated activity feed** (GitHub Action)
+12. **Contribution snake** (GitHub Action)
+
+== API Deployment Notes
+
+=== Environment Variables
+
+[cols="1,1,3", options="header"]
+|===
+| Variable | Required | Purpose
+| `PAT_1` | Yes | GitHub Personal Access Token (read:user, repo scopes)
+| `WAKATIME_API_KEY` | For WakaTime | Used in the GitHub Action only; not needed server-side
+| `CACHE_SECONDS` | No | Override all card TTLs globally
+| `FETCH_MULTI_PAGE_STARS` | No | Set `true` to paginate beyond 100 repos for star counts
+|===
+
+=== Cache TTLs
+
+[cols="1,1,1,1", options="header"]
+|===
+| Card | Default | Min | Max
+| Stats, Streak, Heatmap, LeetCode, Stack Overflow | 1 day | 12 hours | 2 days
+| Top Languages, NPM, PyPI | 6 days | 2 days | 10 days
+| Repo Pin, Gist | 10 days | 1 day | 10 days
+| WakaTime, Last.fm | 1 day | 12 hours | 2 days
+| Any error response | 10 minutes | — | —
+|===
+
+=== Rate Limits
+
+[cols="1,2", options="header"]
+|===
+| Source | Notes
+| GitHub GraphQL | 5,000 points/hour per token. Use multiple `PAT_N` tokens for high traffic.
+| LeetCode GraphQL | Unauthenticated public API — generous limits for profile data.
+| Stack Overflow REST | 300 requests/day without a key; 10,000/day with a registered app key.
+| NPM Registry | No authentication required. No documented hard limit.
+| pypistats.org | No authentication required. 15 req/min unofficial soft limit.
+| Last.fm API | 5 req/sec; free API key sufficient for all profile card usage.
+|===
