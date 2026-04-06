@@ -1,0 +1,90 @@
+// @ts-check
+
+import { renderPypiCard } from "../src/cards/pypi.js";
+import {
+  CACHE_TTL,
+  resolveCacheSeconds,
+  setCacheHeaders,
+  setErrorCacheHeaders,
+} from "../src/common/cache.js";
+import {
+  MissingParamError,
+  retrieveSecondaryMessage,
+} from "../src/common/error.js";
+import { parseBoolean } from "../src/common/ops.js";
+import { renderError } from "../src/common/render.js";
+import { fetchPypiStats } from "../src/fetchers/pypi.js";
+
+// @ts-ignore
+export default async (req, res) => {
+  const {
+    packages,
+    title_color,
+    icon_color,
+    text_color,
+    bg_color,
+    border_color,
+    theme,
+    cache_seconds,
+    custom_title,
+    hide_border,
+    hide_title,
+    border_radius,
+    disable_animations,
+  } = req.query;
+
+  res.setHeader("Content-Type", "image/svg+xml");
+
+  try {
+    const pypiData = await fetchPypiStats(packages);
+
+    const cacheSeconds = resolveCacheSeconds({
+      requested: parseInt(cache_seconds, 10),
+      def: CACHE_TTL.TOP_LANGS_CARD.DEFAULT,
+      min: CACHE_TTL.TOP_LANGS_CARD.MIN,
+      max: CACHE_TTL.TOP_LANGS_CARD.MAX,
+    });
+
+    setCacheHeaders(res, cacheSeconds);
+
+    return res.send(
+      renderPypiCard(pypiData, {
+        title_color,
+        icon_color,
+        text_color,
+        bg_color,
+        border_color,
+        theme,
+        custom_title,
+        hide_border: parseBoolean(hide_border),
+        hide_title: parseBoolean(hide_title),
+        border_radius,
+        disable_animations: parseBoolean(disable_animations),
+      }),
+    );
+  } catch (err) {
+    setErrorCacheHeaders(res);
+    if (err instanceof Error) {
+      return res.send(
+        renderError({
+          message: err.message,
+          secondaryMessage: retrieveSecondaryMessage(err),
+          renderOptions: {
+            title_color,
+            text_color,
+            bg_color,
+            border_color,
+            theme,
+            show_repo_link: !(err instanceof MissingParamError),
+          },
+        }),
+      );
+    }
+    return res.send(
+      renderError({
+        message: "An unknown error occurred",
+        renderOptions: { title_color, text_color, bg_color, border_color, theme },
+      }),
+    );
+  }
+};
