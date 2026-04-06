@@ -617,8 +617,3 @@ Test a card:
 http://localhost:9000/api?username=octocat&show_icons=true&theme=dark
 ----
 
----
-
-== License
-
-link:LICENSE[MIT] © YOUR_USERNAME
